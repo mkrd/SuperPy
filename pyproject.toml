@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "super-py"
-version = "0.2.0"
+version = "0.3.0"
 description = "Features that Python should have in the standard library"
 authors = ["Marcel Kröker <kroeker.marcel@gmail.com>"]
 license = "MIT"

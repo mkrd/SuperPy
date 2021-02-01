@@ -1,7 +1,7 @@
 import traceback
 import time
 
-from superpy import string
+from . import string
 
 
 

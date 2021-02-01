@@ -3,7 +3,7 @@ import logging
 import functools
 from datetime import datetime
 
-from superpy import string
+from . import string
 
 
 

@@ -2,7 +2,7 @@ import os
 import time
 import random
 
-from superpy import log
+from . import log
 
 
 
