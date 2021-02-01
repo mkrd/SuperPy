@@ -1,10 +1,10 @@
 # flake8: noqa
-from superpy.logging import make_logger, log
-from superpy.testing import test, test_class
-from superpy import disk
-from superpy import string
-from superpy import concurrency
-from superpy import dicts
+from .logging import make_logger, log
+from .testing import test, test_class
+from . import disk
+from . import string
+from . import concurrency
+from . import dicts
 
 ################################################################################
 ######## How to make decorators ################################################
