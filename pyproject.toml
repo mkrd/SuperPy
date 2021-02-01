@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "superpy"
+name = "super-py"
 version = "0.1.0"
 description = "Features that Python should have in the standard library"
 authors = ["Marcel Kröker <kroeker.marcel@gmail.com>"]
