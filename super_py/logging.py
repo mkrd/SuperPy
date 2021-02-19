@@ -84,6 +84,8 @@ class log:
 			kwarglist = [f"{k}={a}" for k, a in kwargs.items() if k in self.with_kwargs]
 			log += "(" + ", ".join(arglist + kwarglist) + ")"
 
+			log = string.colored(log, color=self.color)
+
 			if self.filepath is None:
 				print(log)
 			else:
