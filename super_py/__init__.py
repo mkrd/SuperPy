@@ -1,6 +1,6 @@
 # flake8: noqa
 from .logging import make_logger, log
-from .testing import test, test_class
+from .testing import test, test_class, test_must_except
 from . import disk
 from . import string
 from . import concurrency

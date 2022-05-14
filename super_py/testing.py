@@ -74,3 +74,20 @@ class test_class:
 		for test_method_name in [m for m in dir(obj) if m.startswith("test_")]:
 			self.do_test(getattr(obj, test_method_name))
 		self.class_teardown()
+
+
+
+class test_must_except():
+	def __init__(self, exception_type: Type[Exception]):
+		self.exception_type = exception_type
+
+	def __enter__(self):
+		pass
+
+	def __exit__(self, exc_type, exc_value, traceback):
+		if not exc_type:
+			raise TypeError(f"Expected an exception of type {self.exception_type}")
+		if not issubclass(exc_type, self.exception_type):
+			raise TypeError(f"Expected an exception of type {self.exception_type}, got {exc_type}")
+		# Return True to surpress the exception
+		return True
