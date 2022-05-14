@@ -1,5 +1,6 @@
 import traceback
 import time
+from typing import Type
 
 from . import string
 
@@ -78,6 +79,12 @@ class test_class:
 
 
 class test_must_except():
+	"""
+		Use a with statement to run a block of code that must raise an exception.
+		The exception must be of the specified type.9
+
+	"""
+
 	def __init__(self, exception_type: Type[Exception]):
 		self.exception_type = exception_type
 
