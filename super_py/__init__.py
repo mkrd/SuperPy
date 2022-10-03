@@ -6,6 +6,11 @@ from . import string
 from . import concurrency
 from . import dicts
 
+# TODO: Use pytest
+# TODO: Use pytest in CI
+# TODO: Use pytest-cov
+
+
 ################################################################################
 ######## How to make decorators ################################################
 ################################################################################
