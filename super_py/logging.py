@@ -1,10 +1,9 @@
 import time
 import logging
 import functools
-from datetime import datetime
+from logging.handlers import RotatingFileHandler
 
 from . import string
-
 
 
 class _ColoredLoggingFormatter(logging.Formatter):
@@ -12,84 +11,104 @@ class _ColoredLoggingFormatter(logging.Formatter):
 		self.ts_color = ts_color
 		super().__init__(fmt="$levelno: $msg", datefmt="%Y.%m.%d %H:%M:%S", style="$")
 
-
 	def format(self, record):
-		base = string.colored("[$name]\t$asctime\t", self.ts_color)
-		formats = {
-			logging.CRITICAL: f"{base}{string.colored('$msg', 'bright_magenta')}",
-			logging.ERROR: f"{base}{string.colored('$msg', 'bright_red')}",
-			logging.WARNING: f"{base}{string.colored('$msg', 'bright_orange')}",
-			logging.INFO: f"{base}{string.colored('$msg', 'bright_white')}",
-			logging.DEBUG: f"{base}{string.colored('$msg', 'white')}",
-		}
+		base = string.colored("[$name]    $asctime  ", self.ts_color) + "$msg"
+		# formats = {
+		# 	logging.CRITICAL: f"{base}{string.colored('$msg', 'bright_magenta')}",
+		# 	logging.ERROR: f"{base}{string.colored('$msg', 'bright_red')}",
+		# 	logging.WARNING: f"{base}{string.colored('$msg', 'bright_orange')}",
+		# 	logging.INFO: f"{base}{string.colored('$msg', 'bright_white')}",
+		# 	logging.DEBUG: f"{base}{string.colored('$msg', 'white')}",
+		# }
 		formatter = logging.Formatter(
-			fmt=formats.get(record.levelno, self._fmt),
+			fmt=string.colored("[%(name)-12s] %(asctime)s", self.ts_color) + " %(msg)s",
 			datefmt="%Y-%m-%d %H:%M:%S",
-			style="$",
+			style="%",
 		)
 		return formatter.format(record)
 
 
 
-def make_logger(name: str, ts_color: str = "bright_orange", terminal: bool = True, files=[], level=logging.DEBUG):
-	"""
-		Create a styled logger with nice formating that writes to
-		the terminal and/or a set of files.
-	"""
-	logger = logging.getLogger(name)
-	logger.setLevel(level)
-	if terminal:
-		console_handler = logging.StreamHandler()
-		console_handler.setFormatter(_ColoredLoggingFormatter(ts_color=ts_color))
-		logger.addHandler(console_handler)
-	for file in files:
-		file_handler = logging.FileHandler(file)
-		file_handler.setFormatter(_ColoredLoggingFormatter(ts_color=ts_color))
-		logger.addHandler(file_handler)
-	return logger
+class Logger():
+	def __init__(
+		self,
+		name: str,
+		ts_color: str = "bright_orange",
+		terminal: bool = True,
+		files: list[str] | str | None = None,
+		log_level=logging.DEBUG,
+	):
+		"""
+		:param name: Name of the logger
+		:param ts_color: Color of the timestamp and logger name in the log
+		:param terminal: Whether to log to terminal
+		:param files: List of files to log to, or a single file name as a string
+		"""
+		self.logger = logging.getLogger(name)
+		self.logger.setLevel(log_level)
+		formatter = _ColoredLoggingFormatter(ts_color=ts_color)
+
+		# Setup terminal logger
+		if terminal:
+			console_handler = logging.StreamHandler()
+			console_handler.setFormatter(formatter)
+			self.logger.addHandler(console_handler)
+
+		# Setup file logging
+		for file in ([files] if isinstance(files, str) else (files or [])):
+			file_handler = logging.FileHandler(file)
+			file_handler.setFormatter(formatter)
+			self.logger.addHandler(file_handler)
 
 
+	def __call__(self, message):
+		self.logger.debug((" " * 11) + message)
 
-class log:
-	"""
-		decorator for logging.
-		filepath: write to file
-		with_args: list of indices of args that should apppear in the log
-		with_kwargs: list of kwarg names that should appear in the log
-	"""
-	def __init__(self, filepath=None, with_args=[], with_kwargs=[], color="white"):
-		# there is no need to make a class for a decorator if there are no parameters
-		self.filepath = filepath
-		self.with_args = with_args
-		self.with_kwargs = with_kwargs
-		self.color = color
 
-	def __call__(self, method):
-		# returns the decorator itself, which accepts a function and returns another function
-		# wraps ensures that the name and docstring of 'method' is preserved in 'wrapper'
-		@functools.wraps(method)
-		def wrapper(*args, **kwargs):
-			# the wrapper passes all parameters to the function being decorated
-			timestamp = datetime.now().strftime("%Y.%m.%d %H:%M:%S")
-			t1 = time.time()
-			res = method(*args, **kwargs)
-			t2 = time.time()
+	def benchmark(
+		self,
+		_func=None,
+		*,
+		with_args: list[int] = [],
+		with_kwargs: list[str] = []
+	):
+		"""
+		A function decorator for the logger that logs the time it takes to execute a function
 
-			ms = f"{((t2 - t1) * 1000):.1f}ms"
-			if len(ms) < 10:
-				ms = (" " * (10 - len(ms))) + ms
+		Example usage:
 
-			log = f"{timestamp}{ms}    {method.__name__}"
-			arglist = [f"{a}" for i, a in enumerate(args) if i in self.with_args]
-			kwarglist = [f"{k}={a}" for k, a in kwargs.items() if k in self.with_kwargs]
-			log += "(" + ", ".join(arglist + kwarglist) + ")"
+			log = Logger("my_logger")
 
-			log = string.colored(log, color=self.color)
+			@log.benchmark
+			def my_func():
+				...
 
-			if self.filepath is None:
-				print(log)
-			else:
-				with open(self.filepath, "a") as f:
-					f.write(f"\n{log}")
-			return res
-		return wrapper
+			@log.benchmark(with_args=[0, 1], with_kwargs=["c", "d"])
+			def my_func(a, b, c=None, d=None):
+				...
+
+		:param with_args: a list of indices of the arguments to be logged
+		:param with_kwargs: a list of keyword arguments to include in the log
+		:return: A decorator.
+		"""
+		# The decorator is called or returned at the end depending on whether
+		# self.benchmark is called with () or not.
+		def decorator(func):
+			@functools.wraps(func)
+			# The wrapper receives all args and kwagrs of the decorated function
+			def wrapper(*args, **kwargs):
+
+				# Execute and time the decorated function
+				t1 = time.time()
+				res = func(*args, **kwargs)
+				t2 = time.time()
+
+				ms = f"{(t2 - t1) * 1000:.1f}ms".rjust(9)
+				arglist = [f"{a}" for i, a in enumerate(args) if i in with_args]
+				kwarglist = [f"{k}={a}" for k, a in kwargs.items() if k in with_kwargs]
+				arg_str = "(" + ", ".join(arglist + kwarglist) + ")"
+
+				self.logger.debug(f"{ms}  {func.__name__}({arg_str})")
+				return res
+			return wrapper
+		return decorator if _func is None else decorator(_func)

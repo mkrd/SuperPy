@@ -2,7 +2,9 @@ import os
 import time
 import random
 
-from . import log
+from .logging import Logger
+
+log = Logger("sp.disk")
 
 
 
@@ -55,7 +57,7 @@ def _read_bytes(file_names: list):
 
 
 
-@log(with_args=[0, 1])
+@log.benchmark(with_args=[0, 1])
 def test_write_read_speed(size_bytes: int, times: int = 1):
 	"""
 		Generates a list of <times> random bytes objects,

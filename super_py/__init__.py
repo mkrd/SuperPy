@@ -1,10 +1,10 @@
 # flake8: noqa
-from .logging import make_logger, log
 from .testing import test, test_class, test_must_except
 from . import disk
 from . import string
 from . import concurrency
 from . import dicts
+from . import logging
 
 # TODO: Use pytest
 # TODO: Use pytest in CI

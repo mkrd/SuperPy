@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "super-py"
-version = "0.4.4"
+version = "1.0.0"
 repository = "https://github.com/mkrd/SuperPy"
 description = "Features that Python should have in the standard library"
 authors = ["Marcel Kröker <kroeker.marcel@gmail.com>"]
