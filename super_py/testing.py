@@ -16,6 +16,7 @@ class test:
 	def __init__(self, setup: callable = lambda: None, teardown: callable = lambda: None, raise_assertion_errors: bool = False):
 		self.setup = setup
 		self.teardown = teardown
+		self.raise_assertion_errors = raise_assertion_errors
 
 
 	def __call__(self, method):
