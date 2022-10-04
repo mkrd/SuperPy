@@ -36,7 +36,6 @@ class Logger():
 		ts_color: str = "bright_orange",
 		terminal: bool = True,
 		files: list[str] | str | None = None,
-		log_level=logging.DEBUG,
 	):
 		"""
 		:param name: Name of the logger
@@ -45,7 +44,7 @@ class Logger():
 		:param files: List of files to log to, or a single file name as a string
 		"""
 		self.logger = logging.getLogger(name)
-		self.logger.setLevel(log_level)
+		self.logger.setLevel(logging.DEBUG)
 		formatter = _ColoredLoggingFormatter(ts_color=ts_color)
 
 		# Setup terminal logger
@@ -103,6 +102,7 @@ class Logger():
 				res = func(*args, **kwargs)
 				t2 = time.time()
 
+				# Create log message
 				ms = f"{(t2 - t1) * 1000:.1f}ms".rjust(9)
 				arglist = [f"{a}" for i, a in enumerate(args) if i in with_args]
 				kwarglist = [f"{k}={a}" for k, a in kwargs.items() if k in with_kwargs]
