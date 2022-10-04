@@ -13,7 +13,7 @@ class test:
 		Provide a teardown function, and it will run after the test,
 		even if an exception occurs.
 	"""
-	def __init__(self, setup: callable = lambda: None, teardown: callable = lambda: None):
+	def __init__(self, setup: callable = lambda: None, teardown: callable = lambda: None, raise_assertion_errors: bool = False):
 		self.setup = setup
 		self.teardown = teardown
 
@@ -29,6 +29,8 @@ class test:
 		except AssertionError:
 			print(string.colored(f"Test {method.__name__}() failed!", "bright_red"))
 			print(string.colored(traceback.format_exc(), "bright_red"))
+			if self.raise_assertion_errors:
+				raise
 		except BaseException:
 			raise
 		finally:
