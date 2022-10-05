@@ -1,7 +1,7 @@
 import time
 import logging
 import functools
-from logging.handlers import RotatingFileHandler
+from typing import Callable, Union
 
 from . import string
 
@@ -69,7 +69,8 @@ class Logger():
 		_func=None,
 		*,
 		with_args: list[int] = [],
-		with_kwargs: list[str] = []
+		with_kwargs: list[str] = [],
+		extra_info: Union[Callable, list[Callable]] = None,
 	):
 		"""
 		A function decorator for the logger that logs the time it takes to execute a function
@@ -88,6 +89,21 @@ class Logger():
 
 		:param with_args: a list of indices of the arguments to be logged
 		:param with_kwargs: a list of keyword arguments to include in the log
+		:param extra_info: a function or list of functions that return extra information to be logged, separated by dashes
+
+		Use the `extra_info` parameter like so:
+
+			@log.benchmark(extra_info=[lambda: current_user.name, lambda: time.time()])
+			def my_func():
+				...
+
+		or only pass a single function:
+
+			@log.benchmark(extra_info=lambda: current_user.name)
+			def my_func():
+				...
+
+
 		:return: A decorator.
 		"""
 		# The decorator is called or returned at the end depending on whether
@@ -102,13 +118,21 @@ class Logger():
 				res = func(*args, **kwargs)
 				t2 = time.time()
 
-				# Create log message
+				# Create log message with args and kwargs of function
 				ms = f"{(t2 - t1) * 1000:.1f}ms".rjust(9)
 				arglist = [f"{a}" for i, a in enumerate(args) if i in with_args]
 				kwarglist = [f"{k}={a}" for k, a in kwargs.items() if k in with_kwargs]
 				arg_str = ", ".join(arglist + kwarglist)
+				log = f"{ms}  {func.__name__}({arg_str})"
 
-				self.logger.debug(f"{ms}  {func.__name__}({arg_str})")
+				# Add extra info
+				if isinstance(extra_info, list):
+					for info_fn in extra_info:
+						log += f" - {info_fn()}"
+				elif extra_info is not None:
+					log += f" - {extra_info()}"
+				self.logger.debug(log)
+
 				return res
 			return wrapper
 		return decorator if _func is None else decorator(_func)
