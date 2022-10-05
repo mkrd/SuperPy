@@ -106,7 +106,7 @@ class Logger():
 				ms = f"{(t2 - t1) * 1000:.1f}ms".rjust(9)
 				arglist = [f"{a}" for i, a in enumerate(args) if i in with_args]
 				kwarglist = [f"{k}={a}" for k, a in kwargs.items() if k in with_kwargs]
-				arg_str = "(" + ", ".join(arglist + kwarglist) + ")"
+				arg_str = ", ".join(arglist + kwarglist)
 
 				self.logger.debug(f"{ms}  {func.__name__}({arg_str})")
 				return res
